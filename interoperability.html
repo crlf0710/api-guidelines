@@ -1,0 +1,274 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Interoperability - Rust API Guidelines</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <base href="">
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+
+        <!-- MathJax -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Fetch JQuery from CDN but have a local fallback -->
+        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script>
+            if (typeof jQuery == 'undefined') {
+                document.write(unescape("%3Cscript src='jquery.js'%3E%3C/script%3E"));
+            }
+        </script>
+    </head>
+    <body class="light">
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme = localStorage.getItem('theme');
+            if (theme == null) { theme = 'light'; }
+            $('body').removeClass().addClass(theme);
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var sidebar = localStorage.getItem('sidebar');
+            if (sidebar === "hidden") { $("html").addClass("sidebar-hidden") }
+            else if (sidebar === "visible") { $("html").addClass("sidebar-visible") }
+        </script>
+
+        <div id="sidebar" class="sidebar">
+            <ul class="chapter"><li class="affix"><a href="about.html">About</a></li><li class="affix"><a href="checklist.html">Checklist</a></li><li><a href="organization.html"><strong>1.</strong> Organization</a></li><li><a href="naming.html"><strong>2.</strong> Naming</a></li><li><a href="interoperability.html" class="active"><strong>3.</strong> Interoperability</a></li><li><a href="macros.html"><strong>4.</strong> Macros</a></li><li><a href="documentation.html"><strong>5.</strong> Documentation</a></li><li><a href="predictability.html"><strong>6.</strong> Predictability</a></li><li><a href="flexibility.html"><strong>7.</strong> Flexibility</a></li><li><a href="type-safety.html"><strong>8.</strong> Type safety</a></li><li><a href="dependability.html"><strong>9.</strong> Dependability</a></li><li><a href="debuggability.html"><strong>10.</strong> Debuggability</a></li><li><a href="future-proofing.html"><strong>11.</strong> Future proofing</a></li><li><a href="necessities.html"><strong>12.</strong> Necessities</a></li><li class="affix"><a href="external-links.html">External links</a></li></ul>
+        </div>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar" class="menu-bar">
+                    <div class="left-buttons">
+                        <i id="sidebar-toggle" class="fa fa-bars"></i>
+                        <i id="theme-toggle" class="fa fa-paint-brush"></i>
+                    </div>
+
+                    <h1 class="menu-title">Rust API Guidelines</h1>
+
+                    <div class="right-buttons">
+                        <i id="print-button" class="fa fa-print" title="Print this book"></i>
+                    </div>
+                </div>
+
+                <div id="content" class="content">
+                    <a class="header" href="interoperability.html#interoperability" id="interoperability"><h1>Interoperability</h1></a>
+<p><a id="c-common-traits"></a></p>
+<a class="header" href="interoperability.html#types-eagerly-implement-common-traits-c-common-traits" id="types-eagerly-implement-common-traits-c-common-traits"><h2>Types eagerly implement common traits (C-COMMON-TRAITS)</h2></a>
+<p>Rust's trait system does not allow <em>orphans</em>: roughly, every <code>impl</code> must live
+either in the crate that defines the trait or the implementing type.
+Consequently, crates that define new types should eagerly implement all
+applicable, common traits.</p>
+<p>To see why, consider the following situation:</p>
+<ul>
+<li>Crate <code>std</code> defines trait <code>Display</code>.</li>
+<li>Crate <code>url</code> defines type <code>Url</code>, without implementing <code>Display</code>.</li>
+<li>Crate <code>webapp</code> imports from both <code>std</code> and <code>url</code>,</li>
+</ul>
+<p>There is no way for <code>webapp</code> to add <code>Display</code> to <code>url</code>, since it defines
+neither. (Note: the newtype pattern can provide an efficient, but inconvenient
+workaround.)</p>
+<p>The most important common traits to implement from <code>std</code> are:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/marker/trait.Copy.html"><code>Copy</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/clone/trait.Clone.html"><code>Clone</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/cmp/trait.Eq.html"><code>Eq</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/cmp/trait.PartialEq.html"><code>PartialEq</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/cmp/trait.Ord.html"><code>Ord</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html"><code>PartialOrd</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/hash/trait.Hash.html"><code>Hash</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/fmt/trait.Debug.html"><code>Debug</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/fmt/trait.Display.html"><code>Display</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/default/trait.Default.html"><code>Default</code></a></li>
+</ul>
+<p>Note that it is common and expected for types to implement both
+<code>Default</code> and an empty <code>new</code> constructor. <code>new</code> is the constructor
+convention in Rust, and users expect it to exist, so if it is
+reasonable for the basic constructor to take no arguments, then it
+should, even if it is functionally identical to <code>default</code>.</p>
+<p><a id="c-conv-traits"></a></p>
+<a class="header" href="interoperability.html#conversions-use-the-standard-traits-from-asref-asmut-c-conv-traits" id="conversions-use-the-standard-traits-from-asref-asmut-c-conv-traits"><h2>Conversions use the standard traits <code>From</code>, <code>AsRef</code>, <code>AsMut</code> (C-CONV-TRAITS)</h2></a>
+<p>The following conversion traits should be implemented where it makes sense:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/convert/trait.From.html"><code>From</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/convert/trait.TryFrom.html"><code>TryFrom</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/convert/trait.AsRef.html"><code>AsRef</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/convert/trait.AsMut.html"><code>AsMut</code></a></li>
+</ul>
+<p>The following conversion traits should never be implemented:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/convert/trait.Into.html"><code>Into</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/convert/trait.TryInto.html"><code>TryInto</code></a></li>
+</ul>
+<p>These traits have a blanket impl based on <code>From</code> and <code>TryFrom</code>. Implement those
+instead.</p>
+<a class="header" href="interoperability.html#examples-from-the-standard-library" id="examples-from-the-standard-library"><h3>Examples from the standard library</h3></a>
+<ul>
+<li><code>From&lt;u16&gt;</code> is implemented for <code>u32</code> because a smaller integer can always be
+converted to a bigger integer.</li>
+<li><code>From&lt;u32&gt;</code> is <em>not</em> implemented for <code>u16</code> because the conversion may not be
+possible if the integer is too big.</li>
+<li><code>TryFrom&lt;u32&gt;</code> is implemented for <code>u16</code> and returns an error if the integer is
+too big to fit in <code>u16</code>.</li>
+<li><a href="https://doc.rust-lang.org/std/net/struct.Ipv6Addr.html"><code>From&lt;Ipv6Addr&gt;</code></a> is implemented for <a href="https://doc.rust-lang.org/std/net/enum.IpAddr.html"><code>IpAddr</code></a>, which is a type that can
+represent both v4 and v6 IP addresses.</li>
+</ul>
+<p><a id="c-collect"></a></p>
+<a class="header" href="interoperability.html#collections-implement-fromiterator-and-extend-c-collect" id="collections-implement-fromiterator-and-extend-c-collect"><h2>Collections implement <code>FromIterator</code> and <code>Extend</code> (C-COLLECT)</h2></a>
+<p><a href="https://doc.rust-lang.org/std/iter/trait.FromIterator.html"><code>FromIterator</code></a> and <a href="https://doc.rust-lang.org/std/iter/trait.Extend.html"><code>Extend</code></a> enable collections to be used conveniently with
+the following iterator methods:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.collect"><code>Iterator::collect</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.partition"><code>Iterator::partition</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.unzip"><code>Iterator::unzip</code></a></li>
+</ul>
+<p><code>FromIterator</code> is for creating a new collection containing items from an
+iterator, and <code>Extend</code> is for adding items from an iterator onto an existing
+collection.</p>
+<a class="header" href="interoperability.html#examples-from-the-standard-library-1" id="examples-from-the-standard-library-1"><h3>Examples from the standard library</h3></a>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/vec/struct.Vec.html"><code>Vec&lt;T&gt;</code></a> implements both <code>FromIterator&lt;T&gt;</code> and <code>Extend&lt;T&gt;</code>.</li>
+</ul>
+<p><a id="c-serde"></a></p>
+<a class="header" href="interoperability.html#data-structures-implement-serdes-serialize-deserialize-c-serde" id="data-structures-implement-serdes-serialize-deserialize-c-serde"><h2>Data structures implement Serde's <code>Serialize</code>, <code>Deserialize</code> (C-SERDE)</h2></a>
+<p>Types that play the role of a data structure should implement <a href="https://docs.serde.rs/serde/trait.Serialize.html"><code>Serialize</code></a> and
+<a href="https://docs.serde.rs/serde/trait.Deserialize.html"><code>Deserialize</code></a>.</p>
+<p>An example of a type that plays the role of a data structure is
+<a href="https://docs.rs/linked-hash-map/0.4.2/linked_hash_map/struct.LinkedHashMap.html"><code>linked_hash_map::LinkedHashMap</code></a>.</p>
+<p>An example of a type that does not play the role of a data structure is
+<a href="https://docs.rs/byteorder/1.0.0/byteorder/enum.LittleEndian.html"><code>byteorder::LittleEndian</code></a>.</p>
+<p><a id="c-serde-cfg"></a></p>
+<a class="header" href="interoperability.html#crate-has-a-serde-cfg-option-that-enables-serde-c-serde-cfg" id="crate-has-a-serde-cfg-option-that-enables-serde-c-serde-cfg"><h2>Crate has a <code>&quot;serde&quot;</code> cfg option that enables Serde (C-SERDE-CFG)</h2></a>
+<p>If the crate relies on <code>serde_derive</code> to provide Serde impls, the name of the
+cfg can still be simply <code>&quot;serde&quot;</code> by using <a href="https://github.com/serde-rs/serde/blob/v1.0.0/serde/src/lib.rs#L222-L260">this workaround</a>. Do not use a
+different name for the cfg like <code>&quot;serde_impls&quot;</code> or <code>&quot;serde_serialization&quot;</code>.</p>
+<p><a id="c-send-sync"></a></p>
+<a class="header" href="interoperability.html#types-are-send-and-sync-where-possible-c-send-sync" id="types-are-send-and-sync-where-possible-c-send-sync"><h2>Types are <code>Send</code> and <code>Sync</code> where possible (C-SEND-SYNC)</h2></a>
+<p><a href="https://doc.rust-lang.org/std/marker/trait.Send.html"><code>Send</code></a> and <a href="https://doc.rust-lang.org/std/marker/trait.Sync.html"><code>Sync</code></a> are automatically implemented when the compiler determines
+it is appropriate.</p>
+<p>In types that manipulate raw pointers, be vigilant that the <code>Send</code> and <code>Sync</code>
+status of your type accurately reflects its thread safety characteristics. Tests
+like the following can help catch unintentional regressions in whether the type
+implements <code>Send</code> or <code>Sync</code>.</p>
+<pre><pre class="playpen"><code class="language-rust"># #![allow(unused_variables)]
+#fn main() {
+#[test]
+fn test_send() {
+    fn assert_send&lt;T: Send&gt;() {}
+    assert_send::&lt;MyStrangeType&gt;();
+}
+
+#[test]
+fn test_sync() {
+    fn assert_sync&lt;T: Sync&gt;() {}
+    assert_sync::&lt;MyStrangeType&gt;();
+}
+
+#}</code></pre></pre>
+<p><a id="c-send-sync-err"></a></p>
+<a class="header" href="interoperability.html#error-types-are-send-and-sync-c-send-sync-err" id="error-types-are-send-and-sync-c-send-sync-err"><h2>Error types are <code>Send</code> and <code>Sync</code> (C-SEND-SYNC-ERR)</h2></a>
+<p>An error that is not <code>Send</code> cannot be returned by a thread run with
+<a href="https://doc.rust-lang.org/std/thread/fn.spawn.html"><code>thread::spawn</code></a>. An error that is not <code>Sync</code> cannot be passed across threads
+using an <a href="https://doc.rust-lang.org/std/sync/struct.Arc.html"><code>Arc</code></a>. These are common requirements for basic error handling in a
+multithreaded application.</p>
+<p><code>Send</code> and <code>Sync</code> are also important for being able to package a custom error
+into an IO error using <a href="https://doc.rust-lang.org/std/io/struct.Error.html#method.new"><code>std::io::Error::new</code></a>, which requires a trait bound of
+<code>Error + Send + Sync</code>.</p>
+<p>One place to be vigilant about this guideline is in functions that return Error
+trait objects, for example <a href="https://docs.rs/reqwest/0.7.2/reqwest/struct.Error.html#method.get_ref"><code>reqwest::Error::get_ref</code></a>. Typically `Error + Send</p>
+<ul>
+<li>Sync + 'static<code>will be the most useful for callers. The addition of</code>'static<code>allows the trait object to be used with [</code>Error::downcast_ref`].</li>
+</ul>
+<p><a id="c-meaningful-err"></a></p>
+<a class="header" href="interoperability.html#error-types-are-meaningful-not--c-meaningful-err" id="error-types-are-meaningful-not--c-meaningful-err"><h2>Error types are meaningful, not <code>()</code> (C-MEANINGFUL-ERR)</h2></a>
+<p>When defining functions that return <code>Result</code>, and the error carries no
+useful additional information, do not use <code>()</code> as the error type. <code>()</code>
+does not implement <code>std::error::Error</code>, and this causes problems for
+callers that expect to be able to convert errors to <code>Error</code>. Common
+error handling libraries like <a href="https://docs.rs/error-chain">error-chain</a> expect errors to implement
+<code>Error</code>.</p>
+<p>Instead, define a meaningful error type specific to your crate.</p>
+<a class="header" href="interoperability.html#examples-from-the-standard-library-2" id="examples-from-the-standard-library-2"><h3>Examples from the standard library</h3></a>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/str/struct.ParseBoolError.html"><code>ParseBoolError</code></a> is returned when failing to parse a bool from a string.</li>
+</ul>
+<p><a id="c-num-fmt"></a></p>
+<a class="header" href="interoperability.html#binary-number-types-provide-hex-octal-binary-formatting-c-num-fmt" id="binary-number-types-provide-hex-octal-binary-formatting-c-num-fmt"><h2>Binary number types provide <code>Hex</code>, <code>Octal</code>, <code>Binary</code> formatting (C-NUM-FMT)</h2></a>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/fmt/trait.UpperHex.html"><code>std::fmt::UpperHex</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/fmt/trait.LowerHex.html"><code>std::fmt::LowerHex</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/fmt/trait.Octal.html"><code>std::fmt::Octal</code></a></li>
+<li><a href="https://doc.rust-lang.org/std/fmt/trait.Binary.html"><code>std::fmt::Binary</code></a></li>
+</ul>
+<p>These traits control the representation of a type under the <code>{:X}</code>, <code>{:x}</code>,
+<code>{:o}</code>, and <code>{:b}</code> format specifiers.</p>
+<p>Implement these traits for any number type on which you would consider doing
+bitwise manipulations like <code>|</code> or <code>&amp;</code>. This is especially appropriate for
+bitflag types. Numeric quantity types like <code>struct Nanoseconds(u64)</code> probably do
+not need these.</p>
+
+                </div>
+
+                <!-- Mobile navigation buttons -->
+                
+                    <a href="naming.html" class="mobile-nav-chapters previous">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="macros.html" class="mobile-nav-chapters next">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+
+            </div>
+
+            
+                <a href="naming.html" class="nav-chapters previous" title="You can navigate through the chapters using the arrow keys">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+            
+
+            
+                <a href="macros.html" class="nav-chapters next" title="You can navigate through the chapters using the arrow keys">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            
+
+        </div>
+
+
+        <!-- Local fallback for Font Awesome -->
+        <script>
+            if ($(".fa").css("font-family") !== "FontAwesome") {
+                $('<link rel="stylesheet" type="text/css" href="_FontAwesome/css/font-awesome.css">').prependTo('head');
+            }
+        </script>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        
+
+        
+
+
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+    </body>
+</html>

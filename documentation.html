@@ -1,0 +1,282 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Documentation - Rust API Guidelines</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <base href="">
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+
+        <!-- MathJax -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Fetch JQuery from CDN but have a local fallback -->
+        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script>
+            if (typeof jQuery == 'undefined') {
+                document.write(unescape("%3Cscript src='jquery.js'%3E%3C/script%3E"));
+            }
+        </script>
+    </head>
+    <body class="light">
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme = localStorage.getItem('theme');
+            if (theme == null) { theme = 'light'; }
+            $('body').removeClass().addClass(theme);
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var sidebar = localStorage.getItem('sidebar');
+            if (sidebar === "hidden") { $("html").addClass("sidebar-hidden") }
+            else if (sidebar === "visible") { $("html").addClass("sidebar-visible") }
+        </script>
+
+        <div id="sidebar" class="sidebar">
+            <ul class="chapter"><li class="affix"><a href="about.html">About</a></li><li class="affix"><a href="checklist.html">Checklist</a></li><li><a href="organization.html"><strong>1.</strong> Organization</a></li><li><a href="naming.html"><strong>2.</strong> Naming</a></li><li><a href="interoperability.html"><strong>3.</strong> Interoperability</a></li><li><a href="macros.html"><strong>4.</strong> Macros</a></li><li><a href="documentation.html" class="active"><strong>5.</strong> Documentation</a></li><li><a href="predictability.html"><strong>6.</strong> Predictability</a></li><li><a href="flexibility.html"><strong>7.</strong> Flexibility</a></li><li><a href="type-safety.html"><strong>8.</strong> Type safety</a></li><li><a href="dependability.html"><strong>9.</strong> Dependability</a></li><li><a href="debuggability.html"><strong>10.</strong> Debuggability</a></li><li><a href="future-proofing.html"><strong>11.</strong> Future proofing</a></li><li><a href="necessities.html"><strong>12.</strong> Necessities</a></li><li class="affix"><a href="external-links.html">External links</a></li></ul>
+        </div>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar" class="menu-bar">
+                    <div class="left-buttons">
+                        <i id="sidebar-toggle" class="fa fa-bars"></i>
+                        <i id="theme-toggle" class="fa fa-paint-brush"></i>
+                    </div>
+
+                    <h1 class="menu-title">Rust API Guidelines</h1>
+
+                    <div class="right-buttons">
+                        <i id="print-button" class="fa fa-print" title="Print this book"></i>
+                    </div>
+                </div>
+
+                <div id="content" class="content">
+                    <a class="header" href="documentation.html#documentation" id="documentation"><h1>Documentation</h1></a>
+<p><a id="c-crate-doc"></a></p>
+<a class="header" href="documentation.html#crate-level-docs-are-thorough-and-include-examples-c-crate-doc" id="crate-level-docs-are-thorough-and-include-examples-c-crate-doc"><h2>Crate level docs are thorough and include examples (C-CRATE-DOC)</h2></a>
+<p>See <a href="https://github.com/rust-lang/rfcs/pull/1687">RFC 1687</a>.</p>
+<p><a id="c-example"></a></p>
+<a class="header" href="documentation.html#all-items-have-a-rustdoc-example-c-example" id="all-items-have-a-rustdoc-example-c-example"><h2>All items have a rustdoc example (C-EXAMPLE)</h2></a>
+<p>Every public module, trait, struct, enum, function, method, macro, and type
+definition should have an example that exercises the functionality.</p>
+<p>The purpose of an example is not always to show <em>how to use</em> the item. For
+example users can be expected to know how to instantiate and match on an enum
+like <code>enum E { A, B }</code>. Rather, an example is often intended to show <em>why
+someone would want to use</em> the item.</p>
+<p>This guideline should be applied within reason.</p>
+<p>A link to an applicable example on another item may be sufficient. For example
+if exactly one function uses a particular type, it may be appropriate to write a
+single example on either the function or the type and link to it from the other.</p>
+<p><a id="c-question-mark"></a></p>
+<a class="header" href="documentation.html#examples-use--not-try-not-unwrap-c-question-mark" id="examples-use--not-try-not-unwrap-c-question-mark"><h2>Examples use <code>?</code>, not <code>try!</code>, not <code>unwrap</code> (C-QUESTION-MARK)</h2></a>
+<p>Like it or not, example code is often copied verbatim by users. Unwrapping an
+error should be a conscious decision that the user needs to make.</p>
+<p>A common way of structuring fallible example code is the following. The lines
+beginning with <code>#</code> are compiled by <code>cargo test</code> when building the example but
+will not appear in user-visible rustdoc.</p>
+<pre><code>/// ```rust
+/// # use std::error::Error;
+/// #
+/// # fn try_main() -&gt; Result&lt;(), Box&lt;Error&gt;&gt; {
+/// your;
+/// example?;
+/// code;
+/// #
+/// #     Ok(())
+/// # }
+/// #
+/// # fn main() {
+/// #     try_main().unwrap();
+/// # }
+/// ```
+</code></pre>
+<p><a id="c-error-doc"></a></p>
+<a class="header" href="documentation.html#function-docs-include-error-conditions-in-errors-section-c-error-doc" id="function-docs-include-error-conditions-in-errors-section-c-error-doc"><h2>Function docs include error conditions in &quot;Errors&quot; section (C-ERROR-DOC)</h2></a>
+<p>Per <a href="https://github.com/rust-lang/rfcs/blob/master/text/1574-more-api-documentation-conventions.md">RFC 1574</a>.</p>
+<p>This applies to trait methods as well. Trait methods for which the
+implementation is allowed or expected to return an error should be documented
+with an &quot;Errors&quot; section.</p>
+<a class="header" href="documentation.html#examples-from-the-standard-library" id="examples-from-the-standard-library"><h3>Examples from the standard library</h3></a>
+<p>Some implementations of the <a href="https://doc.rust-lang.org/std/io/trait.Read.html#tymethod.read"><code>std::io::Read::read</code></a> trait method may return an
+error.</p>
+<pre><code>/// Pull some bytes from this source into the specified buffer, returning
+/// how many bytes were read.
+///
+/// ... lots more info ...
+///
+/// # Errors
+///
+/// If this function encounters any form of I/O or other error, an error
+/// variant will be returned. If an error is returned then it must be
+/// guaranteed that no bytes were read.
+</code></pre>
+<p><a id="c-panic-doc"></a></p>
+<a class="header" href="documentation.html#function-docs-include-panic-conditions-in-panics-section-c-panic-doc" id="function-docs-include-panic-conditions-in-panics-section-c-panic-doc"><h2>Function docs include panic conditions in &quot;Panics&quot; section (C-PANIC-DOC)</h2></a>
+<p>Per <a href="https://github.com/rust-lang/rfcs/blob/master/text/1574-more-api-documentation-conventions.md">RFC 1574</a>.</p>
+<p>This applies to trait methods as well. Traits methods for which the
+implementation is allowed or expected to panic should be documented with a
+&quot;Panics&quot; section.</p>
+<a class="header" href="documentation.html#examples-from-the-standard-library-1" id="examples-from-the-standard-library-1"><h3>Examples from the standard library</h3></a>
+<p>The <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.insert"><code>Vec::insert</code></a> method may panic.</p>
+<pre><code>/// Inserts an element at position `index` within the vector, shifting all
+/// elements after it to the right.
+///
+/// # Panics
+///
+/// Panics if `index` is out of bounds.
+</code></pre>
+<p><a id="c-link"></a></p>
+<a class="header" href="documentation.html#prose-contains-hyperlinks-to-relevant-things-c-link" id="prose-contains-hyperlinks-to-relevant-things-c-link"><h2>Prose contains hyperlinks to relevant things (C-LINK)</h2></a>
+<p>Links to methods within the same type usually look like this:</p>
+<pre><code class="language-md">[`serialize_struct`]: #method.serialize_struct
+</code></pre>
+<p>Links to other types usually look like this:</p>
+<pre><code class="language-md">[`Deserialize`]: trait.Deserialize.html
+</code></pre>
+<p>Links may also point to a parent or child module:</p>
+<pre><code class="language-md">[`Value`]: ../enum.Value.html
+[`DeserializeOwned`]: de/trait.DeserializeOwned.html
+</code></pre>
+<p>This guideline is officially recommended by RFC 1574 under the heading <a href="https://github.com/rust-lang/rfcs/blob/master/text/1574-more-api-documentation-conventions.md#link-all-the-things">&quot;Link
+all the things&quot;</a>.</p>
+<p><a id="c-metadata"></a></p>
+<a class="header" href="documentation.html#cargotoml-includes-all-common-metadata-c-metadata" id="cargotoml-includes-all-common-metadata-c-metadata"><h2>Cargo.toml includes all common metadata (C-METADATA)</h2></a>
+<p>The <code>[package]</code> section of <code>Cargo.toml</code> should include the following
+values:</p>
+<ul>
+<li><code>authors</code></li>
+<li><code>description</code></li>
+<li><code>license</code></li>
+<li><code>documentation</code></li>
+<li><code>repository</code></li>
+<li><code>readme</code></li>
+<li><code>keywords</code></li>
+<li><code>categories</code></li>
+</ul>
+<p><code>Cargo.toml</code> also allows for a <code>homepage</code> value. This should only be
+filled in if there is a unique website for the crate other than the
+source repository or API documentation. Do not make <code>homepage</code>
+redundant with either the <code>documentation</code> or <code>repository</code> values. For
+example, serde sets <code>homepage</code> to &quot;https://serde.rs&quot;, a dedicated
+website.</p>
+<p><a id="c-docs-rs"></a></p>
+<a class="header" href="documentation.html#cargotoml-documentation-key-points-to-docsrs-c-docs-rs" id="cargotoml-documentation-key-points-to-docsrs-c-docs-rs"><h2>Cargo.toml documentation key points to docs.rs (C-DOCS-RS)</h2></a>
+<p>In most cases the <code>documentation</code> key in a crate's <code>Cargo.toml</code> should
+be <code>&quot;https://docs.rs/CRATE&quot;</code></p>
+<pre><code class="language-toml">[package]
+name = &quot;regex&quot;
+version = &quot;0.2.2&quot;
+documentation = &quot;https://docs.rs/regex&quot;
+</code></pre>
+<p><a href="https://docs.rs">docs.rs</a> provides automatic hosting of crate documentation, with a
+consistent style, inter-crate navigation, and advanced features not
+included in the stock rustdoc output. It is a central destination for
+documentation of all Rust crates. Rust users are familiar with docs.rs
+and expect to go there for their API documentation. A crate that
+directs their users to a different site for its documentation will be
+noticably segregating itself from the larger portion of the
+ecosystem. This may be desirable to crate authors in some situations
+but should be considered carefully.</p>
+<p><a id="c-html-root"></a></p>
+<a class="header" href="documentation.html#crate-sets-html_root_url-attribute-c-html-root" id="crate-sets-html_root_url-attribute-c-html-root"><h3>Crate sets html_root_url attribute (C-HTML-ROOT)</h3></a>
+<p>It should point to <code>&quot;https://docs.rs/CRATE/VER.SI.ON&quot;</code>, assuming the crate
+uses docs.rs for its primary API documentation.</p>
+<p>The <code>html_root_url</code> attribute tells rustdoc how to create URLs to
+items in the crate when compiling downstream crates. Without it, links
+in the documentation of crates that depend on your crate will be
+incorrect.</p>
+<pre><pre class="playpen"><code class="language-rust"># #![allow(unused_variables)]
+#![doc(html_root_url = &quot;https://docs.rs/log/0.3.8&quot;)]
+#fn main() {
+
+#}</code></pre></pre>
+<p>Because this URL contains an exact version number, it must be kept in
+sync with the version number in <code>Cargo.toml</code>. Unfortunately there is
+no mechanism in Rust today to eliminate this duplication, so
+the current recommendation is to add a comment to the <code>Cargo.toml</code>
+version key reminding yourself to keep the two updated together,
+like:</p>
+<pre><code class="language-toml">version = &quot;0.3.8&quot; # remember to update html_root_url
+</code></pre>
+<p><a id="c-relnotes"></a></p>
+<a class="header" href="documentation.html#release-notes-document-all-significant-changes-c-relnotes" id="release-notes-document-all-significant-changes-c-relnotes"><h2>Release notes document all significant changes (C-RELNOTES)</h2></a>
+<p>Users of the crate can read the release notes to find a summary of what
+changed in each published release of the crate.  A link to the release notes,
+or the notes themselves, should be included in the crate-level documentation
+and/or the repository linked in Cargo.toml.</p>
+<p>Breaking changes (as defined in <a href="https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md">RFC 1105</a>) should be clearly identified in the
+release notes.</p>
+<a class="header" href="documentation.html#examples" id="examples"><h3>Examples</h3></a>
+<ul>
+<li><a href="https://github.com/serde-rs/serde/releases/tag/v1.0.0">Serde 1.0.0 release notes</a></li>
+<li><a href="https://github.com/serde-rs/serde/releases/tag/v0.9.8">Serde 0.9.8 release notes</a></li>
+<li><a href="https://github.com/serde-rs/serde/releases/tag/v0.9.0">Serde 0.9.0 release notes</a></li>
+<li><a href="https://github.com/diesel-rs/diesel/blob/master/CHANGELOG.md">Diesel change log</a></li>
+</ul>
+
+                </div>
+
+                <!-- Mobile navigation buttons -->
+                
+                    <a href="macros.html" class="mobile-nav-chapters previous">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="predictability.html" class="mobile-nav-chapters next">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+
+            </div>
+
+            
+                <a href="macros.html" class="nav-chapters previous" title="You can navigate through the chapters using the arrow keys">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+            
+
+            
+                <a href="predictability.html" class="nav-chapters next" title="You can navigate through the chapters using the arrow keys">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            
+
+        </div>
+
+
+        <!-- Local fallback for Font Awesome -->
+        <script>
+            if ($(".fa").css("font-family") !== "FontAwesome") {
+                $('<link rel="stylesheet" type="text/css" href="_FontAwesome/css/font-awesome.css">').prependTo('head');
+            }
+        </script>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        
+
+        
+
+
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+    </body>
+</html>

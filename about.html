@@ -1,0 +1,130 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>About - Rust API Guidelines</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <base href="">
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+
+        <!-- MathJax -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Fetch JQuery from CDN but have a local fallback -->
+        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script>
+            if (typeof jQuery == 'undefined') {
+                document.write(unescape("%3Cscript src='jquery.js'%3E%3C/script%3E"));
+            }
+        </script>
+    </head>
+    <body class="light">
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme = localStorage.getItem('theme');
+            if (theme == null) { theme = 'light'; }
+            $('body').removeClass().addClass(theme);
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var sidebar = localStorage.getItem('sidebar');
+            if (sidebar === "hidden") { $("html").addClass("sidebar-hidden") }
+            else if (sidebar === "visible") { $("html").addClass("sidebar-visible") }
+        </script>
+
+        <div id="sidebar" class="sidebar">
+            <ul class="chapter"><li class="affix"><a href="about.html" class="active">About</a></li><li class="affix"><a href="checklist.html">Checklist</a></li><li><a href="organization.html"><strong>1.</strong> Organization</a></li><li><a href="naming.html"><strong>2.</strong> Naming</a></li><li><a href="interoperability.html"><strong>3.</strong> Interoperability</a></li><li><a href="macros.html"><strong>4.</strong> Macros</a></li><li><a href="documentation.html"><strong>5.</strong> Documentation</a></li><li><a href="predictability.html"><strong>6.</strong> Predictability</a></li><li><a href="flexibility.html"><strong>7.</strong> Flexibility</a></li><li><a href="type-safety.html"><strong>8.</strong> Type safety</a></li><li><a href="dependability.html"><strong>9.</strong> Dependability</a></li><li><a href="debuggability.html"><strong>10.</strong> Debuggability</a></li><li><a href="future-proofing.html"><strong>11.</strong> Future proofing</a></li><li><a href="necessities.html"><strong>12.</strong> Necessities</a></li><li class="affix"><a href="external-links.html">External links</a></li></ul>
+        </div>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar" class="menu-bar">
+                    <div class="left-buttons">
+                        <i id="sidebar-toggle" class="fa fa-bars"></i>
+                        <i id="theme-toggle" class="fa fa-paint-brush"></i>
+                    </div>
+
+                    <h1 class="menu-title">Rust API Guidelines</h1>
+
+                    <div class="right-buttons">
+                        <i id="print-button" class="fa fa-print" title="Print this book"></i>
+                    </div>
+                </div>
+
+                <div id="content" class="content">
+                    <a class="header" href="about.html#rust-api-guidelines" id="rust-api-guidelines"><h1>Rust API Guidelines</h1></a>
+<p>This is a set of recommendations on how to design and present APIs for
+the Rust programming language. They are authored largely by the Rust
+library team, based on experiences building the Rust standard library
+and other crates in the Rust ecosystem.</p>
+<p>These are only guidelines, some more firm than others. In some cases
+they are vague and still in development. Rust crate authors should
+consider them as a set of important considerations in the development
+of idiomatic and interoperable Rust libraries, to use as they see
+fit. These guidelines should not in any way be considered a mandate
+that crate authors must follow, though they may find that crates that
+conform well to these guidelines integrate better with the existing
+crate ecosystem than those that do not.</p>
+<p>This books is organized in two parts: the concise <a href="checklist.html">checklist</a> of all
+individual guidelines, suitable for quick scanning during crate
+reviews; and topical chapters containing explanations of the
+guidelines in detail.</p>
+<p>You can contribute to this book by sending a <a href="https://help.github.com/articles/about-pull-requests/">pull request</a> on <a href="https://github.com/rust-lang-nursery/api-guidelines">github</a>.</p>
+
+                </div>
+
+                <!-- Mobile navigation buttons -->
+                
+
+                
+                    <a href="checklist.html" class="mobile-nav-chapters next">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+
+            </div>
+
+            
+
+            
+                <a href="checklist.html" class="nav-chapters next" title="You can navigate through the chapters using the arrow keys">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            
+
+        </div>
+
+
+        <!-- Local fallback for Font Awesome -->
+        <script>
+            if ($(".fa").css("font-family") !== "FontAwesome") {
+                $('<link rel="stylesheet" type="text/css" href="_FontAwesome/css/font-awesome.css">').prependTo('head');
+            }
+        </script>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        
+
+        
+
+
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+    </body>
+</html>

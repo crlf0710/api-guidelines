@@ -1,0 +1,207 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Necessities - Rust API Guidelines</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <base href="">
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+
+        <!-- MathJax -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Fetch JQuery from CDN but have a local fallback -->
+        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script>
+            if (typeof jQuery == 'undefined') {
+                document.write(unescape("%3Cscript src='jquery.js'%3E%3C/script%3E"));
+            }
+        </script>
+    </head>
+    <body class="light">
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme = localStorage.getItem('theme');
+            if (theme == null) { theme = 'light'; }
+            $('body').removeClass().addClass(theme);
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var sidebar = localStorage.getItem('sidebar');
+            if (sidebar === "hidden") { $("html").addClass("sidebar-hidden") }
+            else if (sidebar === "visible") { $("html").addClass("sidebar-visible") }
+        </script>
+
+        <div id="sidebar" class="sidebar">
+            <ul class="chapter"><li class="affix"><a href="about.html">About</a></li><li class="affix"><a href="checklist.html">Checklist</a></li><li><a href="organization.html"><strong>1.</strong> Organization</a></li><li><a href="naming.html"><strong>2.</strong> Naming</a></li><li><a href="interoperability.html"><strong>3.</strong> Interoperability</a></li><li><a href="macros.html"><strong>4.</strong> Macros</a></li><li><a href="documentation.html"><strong>5.</strong> Documentation</a></li><li><a href="predictability.html"><strong>6.</strong> Predictability</a></li><li><a href="flexibility.html"><strong>7.</strong> Flexibility</a></li><li><a href="type-safety.html"><strong>8.</strong> Type safety</a></li><li><a href="dependability.html"><strong>9.</strong> Dependability</a></li><li><a href="debuggability.html"><strong>10.</strong> Debuggability</a></li><li><a href="future-proofing.html"><strong>11.</strong> Future proofing</a></li><li><a href="necessities.html" class="active"><strong>12.</strong> Necessities</a></li><li class="affix"><a href="external-links.html">External links</a></li></ul>
+        </div>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar" class="menu-bar">
+                    <div class="left-buttons">
+                        <i id="sidebar-toggle" class="fa fa-bars"></i>
+                        <i id="theme-toggle" class="fa fa-paint-brush"></i>
+                    </div>
+
+                    <h1 class="menu-title">Rust API Guidelines</h1>
+
+                    <div class="right-buttons">
+                        <i id="print-button" class="fa fa-print" title="Print this book"></i>
+                    </div>
+                </div>
+
+                <div id="content" class="content">
+                    <a class="header" href="necessities.html#necessities" id="necessities"><h1>Necessities</h1></a>
+<p><a id="c-stable"></a></p>
+<a class="header" href="necessities.html#public-dependencies-of-a-stable-crate-are-stable-c-stable" id="public-dependencies-of-a-stable-crate-are-stable-c-stable"><h2>Public dependencies of a stable crate are stable (C-STABLE)</h2></a>
+<p>A crate cannot be stable (&gt;=1.0.0) without all of its public dependencies being
+stable.</p>
+<p>Public dependencies are crates from which types are used in the public API of
+the current crate.</p>
+<pre><pre class="playpen"><code class="language-rust"># #![allow(unused_variables)]
+#fn main() {
+pub fn do_my_thing(arg: other_crate::TheirThing) { /* ... */ }
+
+#}</code></pre></pre>
+<p>A crate containing this function cannot be stable unless <code>other_crate</code> is also
+stable.</p>
+<p>Be careful because public dependencies can sneak in at unexpected places.</p>
+<pre><pre class="playpen"><code class="language-rust"># #![allow(unused_variables)]
+#fn main() {
+pub struct Error {
+    private: ErrorImpl,
+}
+
+enum ErrorImpl {
+    Io(io::Error),
+    // Should be okay even if other_crate isn't
+    // stable, because ErrorImpl is private.
+    Dep(other_crate::Error),
+}
+
+// Oh no! This puts other_crate into the public API
+// of the current crate.
+impl From&lt;other_crate::Error&gt; for Error {
+    fn from(err: other_crate::Error) -&gt; Self {
+        Error { private: ErrorImpl::Dep(err) }
+    }
+}
+
+#}</code></pre></pre>
+<p><a id="c-permissive"></a></p>
+<a class="header" href="necessities.html#crate-and-its-dependencies-have-a-permissive-license-c-permissive" id="crate-and-its-dependencies-have-a-permissive-license-c-permissive"><h2>Crate and its dependencies have a permissive license (C-PERMISSIVE)</h2></a>
+<p>The software produced by the Rust project is dual-licensed, under
+either the <a href="https://github.com/rust-lang/rust/blob/master/LICENSE-MIT">MIT</a> or <a href="https://github.com/rust-lang/rust/blob/master/LICENSE-APACHE">Apache 2.0</a> licenses. Crates that simply need the
+maximum compatibility with the Rust ecosystem are recommended to do
+the same, in the manner described herein. Other options are described
+below.</p>
+<p>These API guidelines do not provide a detailed explanation of Rust's
+license, but there is a small amount said in the <a href="https://www.rust-lang.org/en-US/faq.html#why-a-dual-mit-asl2-license">Rust FAQ</a>. These
+guidelines are concerned with matters of interoperability with Rust,
+and are not comprehensive over licensing options.</p>
+<p>To apply the Rust license to your project, define the <code>license</code> field
+in your <code>Cargo.toml</code> as:</p>
+<pre><code class="language-toml">[package]
+name = &quot;...&quot;
+version = &quot;...&quot;
+authors = [&quot;...&quot;]
+license = &quot;MIT/Apache-2.0&quot;
+</code></pre>
+<p>And toward the end of your README.md:</p>
+<pre><code>## License
+
+Licensed under either of
+
+ * Apache License, Version 2.0
+   ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT license
+   ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.
+
+## Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.
+</code></pre>
+<p>Besides the dual MIT/Apache-2.0 license, another common licensing approach
+used by Rust crate authors is to apply a single permissive license such as
+MIT or BSD. This license scheme is also entirely compatible with Rust's,
+because it imposes the minimal restrictions of Rust's MIT license.</p>
+<p>Crates that desire perfect license compatibility with Rust are not
+recommended to choose only the Apache license. The Apache license,
+though it is a permissive license, imposes restrictions beyond the MIT
+and BSD licenses that can discourage or prevent their use in some
+scenarios, so Apache-only software cannot be used in some situations
+where most of the Rust runtime stack can.</p>
+<p>The license of a crate's dependencies can affect the restrictions on
+distribution of the crate itself, so a permissively-licensed crate
+should generally only depend on permissively-licensed crates.</p>
+
+                </div>
+
+                <!-- Mobile navigation buttons -->
+                
+                    <a href="future-proofing.html" class="mobile-nav-chapters previous">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="external-links.html" class="mobile-nav-chapters next">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+
+            </div>
+
+            
+                <a href="future-proofing.html" class="nav-chapters previous" title="You can navigate through the chapters using the arrow keys">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+            
+
+            
+                <a href="external-links.html" class="nav-chapters next" title="You can navigate through the chapters using the arrow keys">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            
+
+        </div>
+
+
+        <!-- Local fallback for Font Awesome -->
+        <script>
+            if ($(".fa").css("font-family") !== "FontAwesome") {
+                $('<link rel="stylesheet" type="text/css" href="_FontAwesome/css/font-awesome.css">').prependTo('head');
+            }
+        </script>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        
+
+        
+
+
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+    </body>
+</html>

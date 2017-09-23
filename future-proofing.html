@@ -1,0 +1,249 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Future proofing - Rust API Guidelines</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <base href="">
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+
+        <!-- MathJax -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Fetch JQuery from CDN but have a local fallback -->
+        <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script>
+            if (typeof jQuery == 'undefined') {
+                document.write(unescape("%3Cscript src='jquery.js'%3E%3C/script%3E"));
+            }
+        </script>
+    </head>
+    <body class="light">
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme = localStorage.getItem('theme');
+            if (theme == null) { theme = 'light'; }
+            $('body').removeClass().addClass(theme);
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var sidebar = localStorage.getItem('sidebar');
+            if (sidebar === "hidden") { $("html").addClass("sidebar-hidden") }
+            else if (sidebar === "visible") { $("html").addClass("sidebar-visible") }
+        </script>
+
+        <div id="sidebar" class="sidebar">
+            <ul class="chapter"><li class="affix"><a href="about.html">About</a></li><li class="affix"><a href="checklist.html">Checklist</a></li><li><a href="organization.html"><strong>1.</strong> Organization</a></li><li><a href="naming.html"><strong>2.</strong> Naming</a></li><li><a href="interoperability.html"><strong>3.</strong> Interoperability</a></li><li><a href="macros.html"><strong>4.</strong> Macros</a></li><li><a href="documentation.html"><strong>5.</strong> Documentation</a></li><li><a href="predictability.html"><strong>6.</strong> Predictability</a></li><li><a href="flexibility.html"><strong>7.</strong> Flexibility</a></li><li><a href="type-safety.html"><strong>8.</strong> Type safety</a></li><li><a href="dependability.html"><strong>9.</strong> Dependability</a></li><li><a href="debuggability.html"><strong>10.</strong> Debuggability</a></li><li><a href="future-proofing.html" class="active"><strong>11.</strong> Future proofing</a></li><li><a href="necessities.html"><strong>12.</strong> Necessities</a></li><li class="affix"><a href="external-links.html">External links</a></li></ul>
+        </div>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar" class="menu-bar">
+                    <div class="left-buttons">
+                        <i id="sidebar-toggle" class="fa fa-bars"></i>
+                        <i id="theme-toggle" class="fa fa-paint-brush"></i>
+                    </div>
+
+                    <h1 class="menu-title">Rust API Guidelines</h1>
+
+                    <div class="right-buttons">
+                        <i id="print-button" class="fa fa-print" title="Print this book"></i>
+                    </div>
+                </div>
+
+                <div id="content" class="content">
+                    <a class="header" href="future-proofing.html#future-proofing" id="future-proofing"><h1>Future proofing</h1></a>
+<p><a id="c-struct-private"></a></p>
+<a class="header" href="future-proofing.html#structs-have-private-fields-c-struct-private" id="structs-have-private-fields-c-struct-private"><h2>Structs have private fields (C-STRUCT-PRIVATE)</h2></a>
+<p>Making a field public is a strong commitment: it pins down a representation
+choice, <em>and</em> prevents the type from providing any validation or maintaining any
+invariants on the contents of the field, since clients can mutate it arbitrarily.</p>
+<p>Public fields are most appropriate for <code>struct</code> types in the C spirit: compound,
+passive data structures. Otherwise, consider providing getter/setter methods and
+hiding fields instead.</p>
+<p><a id="c-newtype-hide"></a></p>
+<a class="header" href="future-proofing.html#newtypes-encapsulate-implementation-details-c-newtype-hide" id="newtypes-encapsulate-implementation-details-c-newtype-hide"><h2>Newtypes encapsulate implementation details (C-NEWTYPE-HIDE)</h2></a>
+<p>A newtype can be used to hide representation details while making precise
+promises to the client.</p>
+<p>For example, consider a function <code>my_transform</code> that returns a compound iterator
+type.</p>
+<pre><pre class="playpen"><code class="language-rust"># #![allow(unused_variables)]
+#fn main() {
+use std::iter::{Enumerate, Skip};
+
+pub fn my_transform&lt;I: Iterator&gt;(input: I) -&gt; Enumerate&lt;Skip&lt;I&gt;&gt; {
+    input.skip(3).enumerate()
+}
+
+#}</code></pre></pre>
+<p>We wish to hide this type from the client, so that the client's view of the
+return type is roughly <code>Iterator&lt;Item = (usize, T)&gt;</code>. We can do so using the
+newtype pattern:</p>
+<pre><pre class="playpen"><code class="language-rust"># #![allow(unused_variables)]
+#fn main() {
+use std::iter::{Enumerate, Skip};
+
+pub struct MyTransformResult&lt;I&gt;(Enumerate&lt;Skip&lt;I&gt;&gt;);
+
+impl&lt;I: Iterator&gt; Iterator for MyTransformResult&lt;I&gt; {
+    type Item = (usize, I::Item);
+
+    fn next(&amp;mut self) -&gt; Option&lt;Self::Item&gt; {
+        self.0.next()
+    }
+}
+
+pub fn my_transform&lt;I: Iterator&gt;(input: I) -&gt; MyTransformResult&lt;I&gt; {
+    MyTransformResult(input.skip(3).enumerate())
+}
+
+#}</code></pre></pre>
+<p>Aside from simplifying the signature, this use of newtypes allows us to promise
+less to the client. The client does not know <em>how</em> the result iterator is
+constructed or represented, which means the representation can change in the
+future without breaking client code.</p>
+<p>In the future the same thing can be accomplished more concisely with the <a href="https://github.com/rust-lang/rfcs/blob/master/text/1522-conservative-impl-trait.md"><code>impl Trait</code></a> feature but this is currently unstable.</p>
+<pre><pre class="playpen"><code class="language-rust"># #![allow(unused_variables)]
+#![feature(conservative_impl_trait)]
+
+#fn main() {
+pub fn my_transform&lt;I: Iterator&gt;(input: I) -&gt; impl Iterator&lt;Item = (usize, I::Item)&gt; {
+    input.skip(3).enumerate()
+}
+
+#}</code></pre></pre>
+<p><a id="c-struct-bounds"></a></p>
+<a class="header" href="future-proofing.html#data-structures-do-not-duplicate-derived-trait-bounds-c-struct-bounds" id="data-structures-do-not-duplicate-derived-trait-bounds-c-struct-bounds"><h2>Data structures do not duplicate derived trait bounds (C-STRUCT-BOUNDS)</h2></a>
+<p>Generic data structures should not use trait bounds that can be derived or don't otherwise
+add semantic value.
+Each trait in the <code>derive</code> attribute will be expanded into a separate <code>impl</code> block that
+only applies to generic arguments that implement that trait.</p>
+<pre><pre class="playpen"><code class="language-rust"># #![allow(unused_variables)]
+#fn main() {
+// Prefer this:
+#[derive(Clone, Debug, PartialEq)]
+struct Good&lt;T&gt; { /* ... */ }
+
+// Over this:
+#[derive(Clone, Debug, PartialEq)]
+struct Bad&lt;T: Clone + Debug + PartialEq&gt; { /* ... */ }
+
+#}</code></pre></pre>
+<p>Duplicating derived traits as bounds on <code>Bad</code> is unnecessary and a
+backwards-compatibiliity hazard.
+To illustrate this point, consider deriving <code>PartialOrd</code> on the structures in the
+previous example:</p>
+<pre><pre class="playpen"><code class="language-rust"># #![allow(unused_variables)]
+#fn main() {
+// Non-breaking change:
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+struct Good&lt;T&gt; { /* ... */ }
+
+// Breaking change:
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+struct Bad&lt;T: Clone + Debug + PartialEq + PartialOrd&gt; { /* ... */ }
+
+#}</code></pre></pre>
+<p>Generally speaking, adding a trait bound to a data structure is a breaking change
+because every consumer of that structure will need to start satisfying the additional bound.
+Deriving more traits from the standard library using the <code>derive</code> attribute is not a
+breaking change.</p>
+<p>The following traits should always be avoided in bounds on data structures:</p>
+<ul>
+<li><code>Clone</code></li>
+<li><code>PartialEq</code></li>
+<li><code>PartialOrd</code></li>
+<li><code>Debug</code></li>
+<li><code>Display</code></li>
+<li><code>Default</code></li>
+<li><code>Serialize</code></li>
+<li><code>Deserialize</code></li>
+<li><code>DeserializeOwned</code></li>
+</ul>
+<p>There's a grey area around other non-derivable trait bounds that aren't strictly
+required by the structure definition, like <code>Read</code> or <code>Write</code>.
+They may communicate the intented behaviour of the type better in its definition
+but also limits future extensibility.
+Including semantically useful trait bounds on data structures is still less
+problematic than including derivable traits as bounds.</p>
+<a class="header" href="future-proofing.html#exceptions" id="exceptions"><h3>Exceptions</h3></a>
+<p>There are three exceptions where trait bounds on structures are required:</p>
+<ol>
+<li>The data structure refers to an associated type on the trait.</li>
+<li>The bound is <code>?Sized</code>.</li>
+<li>The data structure has a <code>Drop</code> impl that requires trait bounds.
+Rust currently requires all trait bounds on the <code>Drop</code> impl are also present
+on the data structure.</li>
+</ol>
+<a class="header" href="future-proofing.html#examples-from-the-standard-library" id="examples-from-the-standard-library"><h3>Examples from the standard library</h3></a>
+<ul>
+<li><a href="https://doc.rust-lang.org/std/borrow/enum.Cow.html"><code>std::borrow::Cow</code></a> refers to an associated type on the <code>Borrow</code> trait.</li>
+<li><a href="https://doc.rust-lang.org/std/boxed/struct.Box.html"><code>std::boxed::Box</code></a> opts out of the implicit <code>Sized</code> bound.</li>
+<li><a href="https://doc.rust-lang.org/std/io/struct.BufWriter.html"><code>std::io::BufWriter</code></a> requires a trait bound in its <code>Drop</code> impl.</li>
+</ul>
+
+                </div>
+
+                <!-- Mobile navigation buttons -->
+                
+                    <a href="debuggability.html" class="mobile-nav-chapters previous">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="necessities.html" class="mobile-nav-chapters next">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+
+            </div>
+
+            
+                <a href="debuggability.html" class="nav-chapters previous" title="You can navigate through the chapters using the arrow keys">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+            
+
+            
+                <a href="necessities.html" class="nav-chapters next" title="You can navigate through the chapters using the arrow keys">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            
+
+        </div>
+
+
+        <!-- Local fallback for Font Awesome -->
+        <script>
+            if ($(".fa").css("font-family") !== "FontAwesome") {
+                $('<link rel="stylesheet" type="text/css" href="_FontAwesome/css/font-awesome.css">').prependTo('head');
+            }
+        </script>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        
+
+        
+
+
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+    </body>
+</html>
